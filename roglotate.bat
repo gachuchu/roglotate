@@ -15,7 +15,7 @@ REM 実行モードを決定
 REM 0  : ファイルローテート
 REM 1  : ディレクトリローテート
 call :SetExecMode "%~1" EXEC_MODE
-set TARGET_PATH=%~1
+set TARGET_PATH="%~1"
 
 REM ---------------------------------------------------------------------
 REM オプションを解析
@@ -119,8 +119,8 @@ REM ログローテート実行
 :exec_rotate
 if %EXEC_MODE% equ 0 (
  REM --------------------------
- REM ファイルローテート
- for %%F in ("%TARGET_PATH%") do (
+ REM echo ファイルローテート
+ for %%F in (%TARGET_PATH%) do (
   set FDP=%%~dpF
   set FNAME=%%~nF
   set FEXT=%%~xF
@@ -143,7 +143,7 @@ if %EXEC_MODE% equ 0 (
      call :CommnadExec ren "!FDP!!FNAME!.!OLD!!FEXT!" "!FNAME!.%%i!FEXT!"
     )
    )
-   call :CommnadExec ren "%TARGET_PATH%" "!FNAME!.1!FEXT!"
+   call :CommnadExec ren %TARGET_PATH% "!FNAME!.1!FEXT!"
   ) else (
    REM --------------------------
    REM 日時接尾語で世代管理
@@ -158,18 +158,19 @@ if %EXEC_MODE% equ 0 (
    set TIME_TMP1=%TIME: =0%
    set TIME_TMP2=!TIME_TMP1:~0,8!
    set TIME_STR=!TIME_TMP2::=!
-   call :CommnadExec ren "%TARGET_PATH%" "!FNAME!_!DATE_STR!_!TIME_STR!!FEXT!"
+   call :CommnadExec ren %TARGET_PATH% "!FNAME!_!DATE_STR!_!TIME_STR!!FEXT!"
   )
  )
 
 ) else (
  REM --------------------------
- REM ディレクトリローテート
- for /f "usebackq" %%a in (`dir "%TARGET_PATH%" /b /o-d ^| findstr /v .zip`) do (
+ REM echo ディレクトリローテート
+ for /f "usebackq" %%a in (`dir %TARGET_PATH% /b /o-d ^| findstr /v .zip`) do (
   if !ROTATE! gtr 0 (
    set /a ROTATE=!ROTATE! - 1
   ) else (
-   call :DeleteFile "%TARGET_PATH%\%%a"
+   call :DeleteFile "%TARGET_PATH:"=%\%%a"
+   REM "
   )
  )
 )
@@ -185,11 +186,11 @@ REM 実行モードを設定
 REM ---------------------------------------------------------------------
 :SetExecMode
 setlocal
-if not exist %1 (
- if /i %~1 equ /h (
+if not exist "%~1" (
+ if /i "%~1" equ "/h" (
   call :Usage ヘルプ
  ) else (
-  call :Usage %1 ファイル/フォルダが存在しません
+  call :Usage %~1 ファイル/フォルダが存在しません
  )
 )
 set ATTR=%~a1
